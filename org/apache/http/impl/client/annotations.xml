@@ -1,0 +1,5 @@
+<root>
+    <item name='org.apache.http.impl.client.BasicCredentialsProvider'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
+</root>
