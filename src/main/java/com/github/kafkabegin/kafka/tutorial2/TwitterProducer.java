@@ -1,5 +1,6 @@
 package com.github.kafkabegin.kafka.tutorial2;
 
+import com.github.kafkabegin.kafka.tutorial1.ProducerDemoWithCallBack;
 import com.google.common.collect.Lists;
 import com.twitter.hbc.ClientBuilder;
 import com.twitter.hbc.core.Client;
@@ -10,10 +11,13 @@ import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;
 import com.twitter.hbc.core.processor.StringDelimitedProcessor;
 import com.twitter.hbc.httpclient.auth.Authentication;
 import com.twitter.hbc.httpclient.auth.OAuth1;
+import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +44,9 @@ public class TwitterProducer {
         // Attempts to connect
         client.connect();
 
+        //Create kafka Producer
+        KafkaProducer<String, String> producer = createKafkaProducer();
+
         // on a different thread, or multiple different threads....
         while (!client.isDone()) {
             String msg = null;
@@ -51,8 +58,21 @@ public class TwitterProducer {
             }
             if(msg != null){
                 logger.info(msg);
+                ProducerRecord<String, String> record = new
+                        ProducerRecord<String, String>("twitter_tweets", null, msg);
+
+                producer.send(record, new Callback() {
+                    @Override
+                    public void onCompletion(RecordMetadata recordMetadata, Exception e) {
+                        if( e != null){
+                            logger.error("Something wrong");
+                        }
+                    }
+                });
             }
         }
+
+
         logger.info("End of application");
     }
     public Client createTwitterClient(BlockingQueue<String> msgQueue){
@@ -79,5 +99,16 @@ public class TwitterProducer {
         Client hosebirdClient = builder.build();
 // Attempts to establish a connection.
         return hosebirdClient;
+    }
+
+    private KafkaProducer<String,String> createKafkaProducer(){
+        Properties properties = new Properties();
+        properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        return new KafkaProducer<String, String>(properties);
+
+
     }
 }
