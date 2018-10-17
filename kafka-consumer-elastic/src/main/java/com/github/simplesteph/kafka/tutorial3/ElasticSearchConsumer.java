@@ -1,5 +1,6 @@
 package com.github.simplesteph.kafka.tutorial3;
 
+import com.google.gson.JsonParser;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -89,16 +90,16 @@ public class ElasticSearchConsumer {
         KafkaConsumer<String, String> consumer = createConsumer("twitter_tweets");
 
         while(true){
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
 
             for(ConsumerRecord<String, String> record : records){
-
+                String id = getTweetId(record.value());
                 IndexRequest indexRequest = new IndexRequest(
-                        "twitter", "tweets"
+                        "twitter", "tweets", id
                 ).source(record.value(), XContentType.JSON);
                 IndexResponse indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
-                String id = indexResponse.getId();
-                logger. info(id);
+
+                logger.info(indexResponse.getId());
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -108,5 +109,13 @@ public class ElasticSearchConsumer {
         }
 
 
+    }
+
+    private static JsonParser jsonParser = new JsonParser();
+    private static String getTweetId(String value) {
+        return jsonParser.parse(value)
+                .getAsJsonObject()
+                .get("id_str")
+                .getAsString();
     }
 }
