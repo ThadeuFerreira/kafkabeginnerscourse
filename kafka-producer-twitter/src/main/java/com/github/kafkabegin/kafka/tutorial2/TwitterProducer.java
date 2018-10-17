@@ -30,13 +30,13 @@ public class TwitterProducer {
     private String token = "16211955-nj22PjxqY6OuORgcQgYsZipTRalpbnUniy9GdWS0g";
     private String tokenSecret = "S5CXbaz6Ms0yLJfouCq9fMTpiCd2yjQX5qmyHnr15wnOB";
 
-    public TwitterProducer(){}
+    private TwitterProducer(){}
     public static void main(String[] args) {
         new TwitterProducer().run();
     }
 
     private void run(){
-        /** Set up your blocking queues: Be sure to size these properly based on expected TPS of your stream */
+        /* Set up your blocking queues: Be sure to size these properly based on expected TPS of your stream */
         BlockingQueue<String> msgQueue = new LinkedBlockingQueue<String>(1000);
         //create a twitter client
         Client client = createTwitterClient(msgQueue);
@@ -74,14 +74,14 @@ public class TwitterProducer {
 
         logger.info("End of application");
     }
-    public Client createTwitterClient(BlockingQueue<String> msgQueue){
+    private Client createTwitterClient(BlockingQueue<String> msgQueue){
 
-        /** Declare the host you want to connect to, the endpoint, and authentication (basic auth or oauth) */
+        /* Declare the host you want to connect to, the endpoint, and authentication (basic auth or oauth) */
         Hosts hosebirdHosts = new HttpHosts(Constants.STREAM_HOST);
         StatusesFilterEndpoint hosebirdEndpoint = new StatusesFilterEndpoint();
 // Optional: set up some followings and track terms
         List<Long> followings = Lists.newArrayList(1234L, 566788L);
-        List<String> terms = Lists.newArrayList("bitcoin");
+        List<String> terms = Lists.newArrayList("bolsonaro");
         hosebirdEndpoint.followings(followings);
         hosebirdEndpoint.trackTerms(terms);
 
@@ -95,9 +95,7 @@ public class TwitterProducer {
                 .endpoint(hosebirdEndpoint)
                 .processor(new StringDelimitedProcessor(msgQueue));
 
-        Client hosebirdClient = builder.build();
-// Attempts to establish a connection.
-        return hosebirdClient;
+        return builder.build();
     }
 
     private KafkaProducer<String,String> createKafkaProducer(){
