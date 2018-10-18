@@ -58,7 +58,7 @@ public class TwitterProducer {
             if(msg != null){
                 logger.info(msg);
                 ProducerRecord<String, String> record = new
-                        ProducerRecord<String, String>("twitter_tweets", null, msg);
+                        ProducerRecord<String, String>("twitter_topics", null, msg);
 
                 producer.send(record, new Callback() {
                     @Override
